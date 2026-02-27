@@ -15,20 +15,20 @@ st.set_page_config(
 )
 
 # ==============================
-# 2. TOGETHER AI SETUP
+# 2. OPENROUTER SETUP
 # ==============================
 
-if "TOGETHER_API_KEY" not in st.secrets:
-    st.error("TOGETHER_API_KEY not found in Streamlit Secrets.")
+if "OPENROUTER_KEY" not in st.secrets:
+    st.error("OPENROUTER_KEY not found in Streamlit Cloud Secrets.")
     st.stop()
 
 client = OpenAI(
-    api_key=st.secrets["TOGETHER_API_KEY"],
-    base_url="https://api.together.xyz/v1"
+    base_url="https://openrouter.ai/api/v1",
+    api_key=st.secrets["OPENROUTER_KEY"]
 )
 
 # ==============================
-# 3. CUSTOM RESPONSIVE UI
+# 3. UI STYLING
 # ==============================
 
 st.markdown("""
@@ -68,11 +68,11 @@ st.markdown("""
 # ==============================
 
 st.title("⭐ AI Review Assistant")
-st.markdown(f"Generate a beautiful 5-star review for **{STUDIO_NAME}**")
+st.markdown(f"Generate a genuine 5-star review for **{STUDIO_NAME}**")
 st.divider()
 
 # ==============================
-# 5. STEP 1 – SELECT EXPERIENCE
+# 5. EXPERIENCE SELECTION
 # ==============================
 
 st.subheader("Step 1️⃣: What did you like?")
@@ -94,7 +94,7 @@ keywords = st.multiselect(
 )
 
 # ==============================
-# 6. STEP 2 – GENERATE REVIEW
+# 6. GENERATE REVIEW
 # ==============================
 
 st.subheader("Step 2️⃣: Generate Review")
@@ -106,32 +106,47 @@ if st.button("✨ Generate AI Review"):
         st.stop()
 
     prompt = f"""
-    Write a natural, genuine 5-star Google review 
+    Write a short, natural, genuine 5-star Google review 
     for {STUDIO_NAME}.
     Mention: {', '.join(keywords)}.
-    Keep it under 25 words.
-    Make it sound human and authentic.
+    Maximum 25 words.
+    Sound human and authentic.
     """
 
-    try:
-        response = client.chat.completions.create(
-            model="meta-llama/Llama-3-8b-chat-hf",
-            messages=[
-                {"role": "system", "content": "You write short, authentic Google reviews."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=120,
-            temperature=0.8
-        )
+    # FREE models list with fallback
+    free_models = [
+        "meta-llama/llama-3-8b-instruct:free",
+        "google/gemma-7b-it:free",
+        "nousresearch/hermes-2-pro-llama-3-8b:free"
+    ]
 
-        st.session_state.final_draft = response.choices[0].message.content.strip()
+    generated = False
 
-    except Exception as e:
-        st.error(f"AI Error: {e}")
+    for model_name in free_models:
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": "You write short authentic Google reviews."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=120,
+                temperature=0.8
+            )
+
+            st.session_state.final_draft = response.choices[0].message.content.strip()
+            generated = True
+            break
+
+        except Exception:
+            continue
+
+    if not generated:
+        st.error("All free AI models are currently unavailable. Try again later.")
         st.stop()
 
 # ==============================
-# 7. STEP 3 – EDIT & POST
+# 7. EDIT & POST
 # ==============================
 
 if "final_draft" in st.session_state:
