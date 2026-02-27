@@ -124,9 +124,11 @@ if st.button("✨ Generate AI Review"):
 
     try:
         response = client.chat.completions.create(
-            model="openchat/openchat-3.5-0106",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=100
+            model="meta-llama/llama-3-8b-instruct:free",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=120
         )
 
         st.session_state.final_draft = response.choices[0].message.content.strip()
