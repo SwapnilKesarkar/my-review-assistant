@@ -15,17 +15,17 @@ st.set_page_config(
 )
 
 # ==============================
-# 2. OPENROUTER SETUP
+# 2. TOGETHER AI SETUP
 # ==============================
 
-try:
-    client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=st.secrets["OPENROUTER_KEY"]
-    )
-except Exception as e:
-    st.error("OpenRouter API key missing. Add OPENROUTER_KEY in secrets.toml")
+if "TOGETHER_API_KEY" not in st.secrets:
+    st.error("TOGETHER_API_KEY not found in Streamlit Secrets.")
     st.stop()
+
+client = OpenAI(
+    api_key=st.secrets["TOGETHER_API_KEY"],
+    base_url="https://api.together.xyz/v1"
+)
 
 # ==============================
 # 3. CUSTOM RESPONSIVE UI
@@ -33,7 +33,6 @@ except Exception as e:
 
 st.markdown("""
 <style>
-
 .block-container {
     padding-top: 2rem;
     padding-bottom: 2rem;
@@ -55,20 +54,12 @@ st.markdown("""
     background-color: #45a049;
 }
 
-@media (max-width: 640px) {
-    .block-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-}
-
 .custom-box {
     background-color: #f8f9fa;
     padding: 15px;
     border-radius: 10px;
     margin-top: 15px;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -124,11 +115,13 @@ if st.button("✨ Generate AI Review"):
 
     try:
         response = client.chat.completions.create(
-            model="meta-llama/llama-3-8b-instruct:free",
+            model="meta-llama/Llama-3-8b-chat-hf",
             messages=[
+                {"role": "system", "content": "You write short, authentic Google reviews."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=120
+            max_tokens=120,
+            temperature=0.8
         )
 
         st.session_state.final_draft = response.choices[0].message.content.strip()
