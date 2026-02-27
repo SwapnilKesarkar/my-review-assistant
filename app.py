@@ -9,7 +9,7 @@ GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
 try:
     api_key = st.secrets["GEMINI_KEY"]
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-flash')
 except:
     st.error("API Key is missing! Please add GEMINI_KEY to Streamlit Secrets.")
 
