@@ -1,5 +1,5 @@
 import streamlit as st
-from openai import OpenAI
+import google.generativeai as genai
 
 # ==============================
 # 1. CONFIGURATION
@@ -15,17 +15,16 @@ st.set_page_config(
 )
 
 # ==============================
-# 2. OPENROUTER SETUP
+# 2. GEMINI SETUP
 # ==============================
 
-if "OPENROUTER_KEY" not in st.secrets:
-    st.error("OPENROUTER_KEY not found in Streamlit Cloud Secrets.")
+if "GEMINI_API_KEY" not in st.secrets:
+    st.error("GEMINI_API_KEY not found in Streamlit Cloud Secrets.")
     st.stop()
 
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=st.secrets["OPENROUTER_KEY"]
-)
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ==============================
 # 3. UI STYLING
@@ -110,39 +109,20 @@ if st.button("✨ Generate AI Review"):
     for {STUDIO_NAME}.
     Mention: {', '.join(keywords)}.
     Maximum 25 words.
-    Sound human and authentic.
+    Make it sound human and authentic.
     """
 
-    # FREE models list with fallback
-    free_models = [
-        "meta-llama/llama-3-8b-instruct:free",
-        "google/gemma-7b-it:free",
-        "nousresearch/hermes-2-pro-llama-3-8b:free"
-    ]
+    try:
+        response = model.generate_content(prompt)
 
-    generated = False
+        if response and response.text:
+            st.session_state.final_draft = response.text.strip()
+        else:
+            st.error("Empty response from Gemini.")
+            st.stop()
 
-    for model_name in free_models:
-        try:
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": "You write short authentic Google reviews."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=120,
-                temperature=0.8
-            )
-
-            st.session_state.final_draft = response.choices[0].message.content.strip()
-            generated = True
-            break
-
-        except Exception:
-            continue
-
-    if not generated:
-        st.error("All free AI models are currently unavailable. Try again later.")
+    except Exception as e:
+        st.error(f"Gemini Error: {e}")
         st.stop()
 
 # ==============================
