@@ -1,70 +1,228 @@
 import streamlit as st
 import google.generativeai as genai
-import random
 
-# 1. SETUP - Replace with your details
+# ==============================
+# 1. CONFIGURATION
+# ==============================
 GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
 STUDIO_NAME = "SK Photo Studio"
 
-# 2. AI SETUP
+st.set_page_config(
+    page_title="AI Review Assistant",
+    page_icon="⭐",
+    layout="centered"
+)
+
+# ==============================
+# 2. CUSTOM RESPONSIVE UI
+# ==============================
+st.markdown("""
+<style>
+
+html, body, [class*="css"]  {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Main container */
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    max-width: 600px;
+}
+
+/* Buttons */
+.stButton>button {
+    width: 100%;
+    border-radius: 12px;
+    height: 3.2em;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+}
+
+.stButton>button:hover {
+    background-color: #45a049;
+}
+
+/* Mobile improvements */
+@media (max-width: 640px) {
+    .block-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Info box */
+.custom-box {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ==============================
+# 3. GEMINI AI SETUP
+# ==============================
 try:
     genai.configure(api_key=st.secrets["GEMINI_KEY"])
     model = genai.GenerativeModel('gemini-2.0-flash')
 except:
     st.error("API Key error. Check Streamlit Secrets.")
 
-# 3. PAGE UI
-st.set_page_config(page_title="AI Review Assistant", page_icon="⭐")
+# ==============================
+# 4. HEADER
+# ==============================
+st.title("⭐ AI Review Assistant")
+st.markdown(f"Generate a beautiful 5-star review for **{STUDIO_NAME}**")
 
-# Custom Styling
-st.markdown("""
-    <style>
-    .stButton>button { width: 100%; border-radius: 10px; height: 3.5em; background-color: #4CAF50; color: white; font-weight: bold; }
-    </style>
-    """, unsafe_allow_html=True)
+st.divider()
 
-st.title("AI Review Assistant 📸")
-st.write(f"Generate your 5-star review for **{STUDIO_NAME}**")
+# ==============================
+# 5. STEP 1 – SELECT EXPERIENCE
+# ==============================
+st.subheader("Step 1️⃣: What did you like?")
 
-# FIXED KEYWORDS (Default must be inside the list)
-options_list = ["Professionalism", "Creative Posing", "Pro Lighting", "Fast Delivery", "Friendly Staff", "Beautiful Edits", "Great Studio"]
+options_list = [
+    "Professionalism",
+    "Creative Posing",
+    "Pro Lighting",
+    "Fast Delivery",
+    "Friendly Staff",
+    "Beautiful Edits",
+    "Great Studio"
+]
 
 keywords = st.multiselect(
-    "Select what you liked:",
+    "Select your experience:",
     options=options_list,
-    default=["Professionalism", "Creative Posing"] # These now match the options_list
+    default=["Professionalism", "Creative Posing"]
 )
 
-# 4. GENERATION
+# ==============================
+# 6. STEP 2 – GENERATE REVIEW
+# ==============================
+st.subheader("Step 2️⃣: Generate Review")
+
 if st.button("✨ Generate AI Review"):
     try:
-        prompt = f"Write a natural 5-star Google review for {STUDIO_NAME} mentioning {', '.join(keywords)}. Max 20 words."
+        prompt = f"""
+        Write a natural, genuine, 5-star Google review 
+        for {STUDIO_NAME}. Mention: {', '.join(keywords)}.
+        Keep it under 25 words.
+        """
         response = model.generate_content(prompt)
-        st.session_state.final_draft = response.text
+        st.session_state.final_draft = response.text.strip()
     except:
-        st.session_state.final_draft = "Amazing experience! The photos turned out beautiful and the staff was very professional. Highly recommended!"
+        st.session_state.final_draft = (
+            "Amazing experience! The team was very professional and the photos turned out beautiful. Highly recommended!"
+        )
 
-# 5. THE "VIDEO STYLE" FLOW
+# ==============================
+# 7. STEP 3 – EDIT & POST
+# ==============================
 if 'final_draft' in st.session_state:
-    st.success("Review Ready!")
-    
-    # Editable Text Area
-    final_text = st.text_area("Your Review:", value=st.session_state.final_draft, height=100)
 
-    # SMARTY STYLE COPY BOX
-    st.info("Step 1: Click the copy icon in the box below")
-    st.code(final_text, language=None)
-    
-    st.write("Step 2: Click below to post. (Paste when Google opens!)")
-    
-    # THE BIG POST BUTTON
-    st.link_button("🚀 Copy & Open Google Maps", GOOGLE_MAPS_LINK)
+    st.divider()
+    st.subheader("Step 3️⃣: Edit & Post")
+
+    st.success("Your Review is Ready 🎉")
+
+    final_text = st.text_area(
+        "You can edit before posting:",
+        value=st.session_state.final_draft,
+        height=120
+    )
+
+    st.markdown('<div class="custom-box">📋 Copy the review below</div>', unsafe_allow_html=True)
+    st.code(final_text)
+
+    st.markdown("### 🚀 Final Step")
+
+    st.link_button("Open Google Maps & Paste Review", GOOGLE_MAPS_LINK)
 
     st.markdown("""
-        <div style="background-color: #fff3cd; padding: 10px; border-radius: 10px; font-size: 0.9em;">
-        <strong>How to post:</strong> 1. Copy above. 2. Click button. 3. Paste on Google!
-        </div>
+    <div class="custom-box">
+    <strong>How to Post:</strong><br>
+    1️⃣ Copy the review<br>
+    2️⃣ Click the button above<br>
+    3️⃣ Paste into Google review box<br>
+    4️⃣ Submit ⭐⭐⭐⭐⭐
+    </div>
     """, unsafe_allow_html=True)
+
+
+# import streamlit as st
+# import google.generativeai as genai
+# import random
+
+# # 1. SETUP - Replace with your details
+# GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
+# STUDIO_NAME = "SK Photo Studio"
+
+# # 2. AI SETUP
+# try:
+#     genai.configure(api_key=st.secrets["GEMINI_KEY"])
+#     model = genai.GenerativeModel('gemini-2.0-flash')
+# except:
+#     st.error("API Key error. Check Streamlit Secrets.")
+
+# # 3. PAGE UI
+# st.set_page_config(page_title="AI Review Assistant", page_icon="⭐")
+
+# # Custom Styling
+# st.markdown("""
+#     <style>
+#     .stButton>button { width: 100%; border-radius: 10px; height: 3.5em; background-color: #4CAF50; color: white; font-weight: bold; }
+#     </style>
+#     """, unsafe_allow_html=True)
+
+# st.title("AI Review Assistant 📸")
+# st.write(f"Generate your 5-star review for **{STUDIO_NAME}**")
+
+# # FIXED KEYWORDS (Default must be inside the list)
+# options_list = ["Professionalism", "Creative Posing", "Pro Lighting", "Fast Delivery", "Friendly Staff", "Beautiful Edits", "Great Studio"]
+
+# keywords = st.multiselect(
+#     "Select what you liked:",
+#     options=options_list,
+#     default=["Professionalism", "Creative Posing"] # These now match the options_list
+# )
+
+# # 4. GENERATION
+# if st.button("✨ Generate AI Review"):
+#     try:
+#         prompt = f"Write a natural 5-star Google review for {STUDIO_NAME} mentioning {', '.join(keywords)}. Max 20 words."
+#         response = model.generate_content(prompt)
+#         st.session_state.final_draft = response.text
+#     except:
+#         st.session_state.final_draft = "Amazing experience! The photos turned out beautiful and the staff was very professional. Highly recommended!"
+
+# # 5. THE "VIDEO STYLE" FLOW
+# if 'final_draft' in st.session_state:
+#     st.success("Review Ready!")
+    
+#     # Editable Text Area
+#     final_text = st.text_area("Your Review:", value=st.session_state.final_draft, height=100)
+
+#     # SMARTY STYLE COPY BOX
+#     st.info("Step 1: Click the copy icon in the box below")
+#     st.code(final_text, language=None)
+    
+#     st.write("Step 2: Click below to post. (Paste when Google opens!)")
+    
+#     # THE BIG POST BUTTON
+#     st.link_button("🚀 Copy & Open Google Maps", GOOGLE_MAPS_LINK)
+
+#     st.markdown("""
+#         <div style="background-color: #fff3cd; padding: 10px; border-radius: 10px; font-size: 0.9em;">
+#         <strong>How to post:</strong> 1. Copy above. 2. Click button. 3. Paste on Google!
+#         </div>
+#     """, unsafe_allow_html=True)
 
 
 # import streamlit as st
