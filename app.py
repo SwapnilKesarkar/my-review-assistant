@@ -1,72 +1,49 @@
 import streamlit as st
 import google.generativeai as genai
-from st_copy import copy_button
 
-# 1. CONFIGURATION
-GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review" # <-- PASTE YOUR LINK HERE
+# 1. SETUP - REPLACE THE LINK BELOW
+# To get this link: Go to Google Business Profile -> Ask for Reviews -> Copy Link
+GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
 
-# 2. AI SETUP
+# 2. AI CONFIGURATION
 try:
-    # Use the 2026 stable free model: Gemini 2.5 Flash-Lite
     genai.configure(api_key=st.secrets["GEMINI_KEY"])
-    model = genai.GenerativeModel('gemini-2.5-flash-lite')
-except Exception as e:
-    st.error("Setup Error: Please check your API Key in Streamlit Secrets.")
+    # Using 2.0 Flash - stable and high free quota
+    model = genai.GenerativeModel('gemini-2.0-flash')
+except:
+    st.error("API Key error. Check Streamlit Secrets.")
 
-# 3. PAGE DESIGN
+# 3. UI DESIGN
 st.set_page_config(page_title="Studio Review Assistant", page_icon="📸")
+st.title("Photo Studio Review Helper 📸")
+st.write("We'll help you draft a professional review to post on Google!")
 
-st.title("Capture Your Thoughts! 📸")
-st.write("We hope you enjoyed your photoshoot. Let's help you write a quick review!")
+# Inputs
+session = st.selectbox("What was your session?", ["Portrait", "Wedding", "Family", "Event"])
+highlights = st.multiselect("What was great?", ["Lighting", "Posing Help", "Fast Edits", "Professional"])
 
-# Photo Studio Specific Inputs
-col1, col2 = st.columns(2)
-with col1:
-    session_type = st.selectbox("What was the occasion?", 
-                                ["Portrait", "Wedding", "Family", "Product", "Event", "Baby Shoot"])
-with col2:
-    rating = st.select_slider("Rating", options=["4", "5"], value="5")
+if st.button("Generate Review"):
+    with st.spinner("Drafting..."):
+        try:
+            prompt = f"Write a natural 5-star Google review for a photo studio. Session: {session}. Highlights: {', '.join(highlights)}. Max 25 words."
+            response = model.generate_content(prompt)
+            st.session_state.draft = response.text
+        except:
+            st.error("AI is busy. Please try again in 10 seconds.")
 
-highlights = st.multiselect("What did you love?", 
-                            ["Lighting", "Professionalism", "Posing Help", "Fast Delivery", "Editing Quality", "Friendly Atmosphere"])
-
-extra_detail = st.text_input("Anything specific to mention? (e.g., photographer name)")
-
-# 4. REVIEW GENERATION LOGIC
-if st.button("Generate Review Draft"):
-    if not highlights:
-        st.warning("Please select at least one thing you loved!")
-    else:
-        with st.spinner("Writing your studio review..."):
-            try:
-                # Specialized prompt for a Photo Studio
-                prompt = (f"Write a natural 5-star Google review for a photography studio. "
-                          f"Session: {session_type}. Highlights: {', '.join(highlights)}. "
-                          f"Details: {extra_detail}. Keep it warm, professional, and max 30 words.")
-                
-                response = model.generate_content(prompt)
-                review_text = response.text
-                
-                # Save to session state so it stays on screen
-                st.session_state.final_draft = review_text
-                
-            except Exception as e:
-                if "429" in str(e):
-                    st.error("The free AI is currently busy. Please wait 10 seconds and try again!")
-                else:
-                    st.error("AI Error. Please try clicking the button again.")
-
-# 5. DISPLAY AND ACTION
-if 'final_draft' in st.session_state:
-    st.subheader("Your AI Draft:")
+# 4. THE POSTING FLOW
+if 'draft' in st.session_state:
+    st.subheader("Your Review is Ready!")
     
-    # Text area for editing
-    user_edited_text = st.text_area("You can tweak the text here:", 
-                                     value=st.session_state.final_draft, height=120)
+    # 1. Show the text for the user to see
+    final_review = st.text_area("Final Text:", value=st.session_state.draft, height=100)
     
-    # Copy Button (New Feature!)
-    copy_button(user_edited_text, label="📋 Copy Review Text", copied_label="✅ Copied!")
+    # 2. Provide a COPY box (Built-in Streamlit feature)
+    st.write("Step 1: Click the copy icon in the top-right of this box:")
+    st.code(final_review, language=None)
     
     st.write("---")
-    st.info("Step 1: Click the 'Copy' button above.\nStep 2: Click the button below to paste on Google!")
-    st.link_button("🚀 Post on Google Maps", GOOGLE_MAPS_LINK)
+    
+    # 3. The Jump Button
+    st.write("Step 2: Click the button below. Once Google opens, **Paste** your text and hit **Post**.")
+    st.link_button("🚀 Jump to Google Reviews", GOOGLE_MAPS_LINK)
