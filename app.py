@@ -15,15 +15,27 @@ st.set_page_config(
 )
 
 # ==============================
-# MINIMAL MOBILE STYLE
+# MOBILE BEAUTIFUL UI
 # ==============================
 
 st.markdown("""
 <style>
+
+body {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+}
+
 .block-container {
     padding-top: 1.5rem;
     padding-bottom: 2rem;
     max-width: 420px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
 h1, h2, h3 {
@@ -33,26 +45,47 @@ h1, h2, h3 {
 .stButton>button {
     width: 100%;
     height: 3.2em;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 16px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+}
+
+.stButton>button:active {
+    transform: scale(0.98);
 }
 
 .stRadio > div {
     justify-content: center;
 }
 
-.stMultiSelect label {
-    font-weight: 500;
+.copy-box {
+    background-color: #f4f6f9;
+    padding: 12px;
+    border-radius: 12px;
+    margin-top: 10px;
 }
+
+.footer-note {
+    font-size: 14px;
+    text-align: center;
+    margin-top: 10px;
+    color: #666;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# HEADER
+# CARD START
 # ==============================
 
-st.title("⭐ Leave a Review")
-st.write(f"for **{STUDIO_NAME}**")
+st.markdown('<div class="card">', unsafe_allow_html=True)
+
+st.markdown("## ⭐ Leave a Review")
+st.markdown(f"for **{STUDIO_NAME}** 📸")
 
 st.divider()
 
@@ -61,7 +94,7 @@ st.divider()
 # ==============================
 
 rating = st.radio(
-    "Select Rating",
+    "Your Rating",
     ["⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐"],
     horizontal=True
 )
@@ -91,15 +124,15 @@ def generate_review(selected_keywords, rating):
 
     openings = [
         "Amazing experience!",
-        "Great service!",
-        "Really happy with my visit.",
-        "Had a wonderful time."
+        "Loved my visit!",
+        "Fantastic service!",
+        "Very happy overall!"
     ]
 
     closing_map = {
         "⭐⭐⭐⭐⭐": "Highly recommended!",
         "⭐⭐⭐⭐": "Would recommend.",
-        "⭐⭐⭐": "Overall good experience."
+        "⭐⭐⭐": "Overall a good experience."
     }
 
     opening = random.choice(openings)
@@ -117,17 +150,20 @@ def generate_review(selected_keywords, rating):
 # GENERATE BUTTON
 # ==============================
 
-if st.button("Generate Review"):
+if st.button("✨ Generate My Review"):
 
-    st.session_state.review = generate_review(keywords, rating)
+    if not keywords:
+        st.warning("Please select at least one option.")
+    else:
+        st.session_state.review = generate_review(keywords, rating)
 
 # ==============================
-# RESULT
+# RESULT SECTION
 # ==============================
 
 if "review" in st.session_state:
 
-    st.divider()
+    st.success("🎉 Your Review is Ready!")
 
     review_text = st.text_area(
         "Edit if needed:",
@@ -135,9 +171,20 @@ if "review" in st.session_state:
         height=110
     )
 
+    st.markdown('<div class="copy-box">📋 Copy this review:</div>', unsafe_allow_html=True)
     st.code(review_text)
 
-    st.link_button("Post on Google", GOOGLE_MAPS_LINK)
+    st.link_button("🚀 Post on Google", GOOGLE_MAPS_LINK)
+
+    st.markdown("""
+    <div class="footer-note">
+    1️⃣ Copy review<br>
+    2️⃣ Tap Post<br>
+    3️⃣ Paste & Submit ⭐
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 
 # import streamlit as st
