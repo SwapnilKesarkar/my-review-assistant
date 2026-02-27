@@ -111,16 +111,23 @@ st.subheader("Step 2️⃣: Generate Review")
 if st.button("✨ Generate AI Review"):
     try:
         prompt = f"""
-        Write a natural, genuine, 5-star Google review 
+        Write a natural, genuine 5-star Google review 
         for {STUDIO_NAME}. Mention: {', '.join(keywords)}.
         Keep it under 25 words.
         """
+
         response = model.generate_content(prompt)
-        st.session_state.final_draft = response.text.strip()
-    except:
-        st.session_state.final_draft = (
-            "Amazing experience! The team was very professional and the photos turned out beautiful. Highly recommended!"
-        )
+
+        st.write("DEBUG RESPONSE:", response)  # 👈 see what returns
+
+        if response and response.text:
+            st.session_state.final_draft = response.text.strip()
+        else:
+            st.error("AI returned empty response.")
+            st.session_state.final_draft = ""
+
+    except Exception as e:
+        st.error(f"Error from Gemini: {e}")
 
 # ==============================
 # 7. STEP 3 – EDIT & POST
