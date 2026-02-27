@@ -35,7 +35,7 @@ h1 { text-align: center; }
 """, unsafe_allow_html=True)
 
 # ==============================
-# HUMAN STYLE SENTENCE POOLS
+# HUMAN SENTENCE POOLS
 # ==============================
 
 openings = [
@@ -44,33 +44,25 @@ openings = [
     "From start to finish, everything was perfect ✨",
     "So happy I chose this studio ❤️",
     "What an amazing photoshoot experience! 🎉",
-    "Truly impressed with the professionalism 🙌",
-    "It was such a smooth and enjoyable session 😊",
-    "I couldn’t be happier with the results 💯"
+    "Truly impressed with the professionalism 🙌"
 ]
 
 experience_lines = [
-    "The team made me feel completely comfortable.",
-    "They guided us patiently throughout the shoot.",
+    "The team made me feel completely comfortable and confident.",
+    "They guided us patiently throughout the entire shoot.",
     "The attention to detail really stood out.",
-    "Lighting and setup were handled beautifully.",
-    "The entire process felt premium and organized.",
-    "The creativity during the shoot was amazing.",
-    "Everything was managed so smoothly.",
-    "Their friendly approach made it even better.",
-    "The editing quality exceeded expectations.",
-    "Delivery was faster than I expected."
+    "The lighting and setup were handled beautifully.",
+    "Everything was managed so smoothly from beginning to end.",
+    "The editing quality exceeded my expectations."
 ]
 
 emotional_lines = [
     "You can truly see the passion in their work 💖",
     "Every shot captured our special moments perfectly 📷",
     "They really know how to bring out your best look 🌟",
-    "The final photos made us so emotional 🥹",
-    "Such positive energy throughout the session ✨",
-    "It felt more like fun than a formal shoot 😄",
-    "They paid attention to even the smallest details 👌",
-    "The results honestly surprised me in the best way!"
+    "The final photos honestly surprised me in the best way!",
+    "Such positive energy throughout the entire session ✨",
+    "It felt more like fun than a formal shoot 😄"
 ]
 
 closings = [
@@ -78,36 +70,25 @@ closings = [
     "Would definitely visit again! 💫",
     "Five stars without a doubt ⭐",
     "Totally worth it! 👍",
-    "Can’t wait for my next shoot here! 😍",
-    "Big thanks to the amazing team! 🙏",
-    "Absolutely satisfied with everything! 💕",
-    "If you’re thinking about booking, just do it! 😉"
+    "Big thanks to the amazing team! 🙏"
 ]
 
 # ==============================
-# GENERATOR (2–5 HUMAN LINES)
+# PARAGRAPH GENERATOR
 # ==============================
 
 def generate_review(previous=None):
-
     while True:
-        lines = []
+        opening = random.choice(openings)
 
-        # Opening
-        lines.append(random.choice(openings))
+        # choose 2–3 middle sentences
+        middle_pool = experience_lines + emotional_lines
+        middle_count = random.randint(2, 3)
+        middle_sentences = random.sample(middle_pool, middle_count)
 
-        # Random number of middle lines (1–3)
-        middle_count = random.randint(1, 3)
+        closing = random.choice(closings)
 
-        combined_pool = experience_lines + emotional_lines
-        middle_lines = random.sample(combined_pool, middle_count)
-
-        lines.extend(middle_lines)
-
-        # Closing
-        lines.append(random.choice(closings))
-
-        review = "\n\n".join(lines)
+        review = " ".join([opening] + middle_sentences + [closing])
 
         if review != previous:
             return review
@@ -134,7 +115,7 @@ if st.button("🔄 Change Review"):
 review_text = st.text_area(
     "Your Review:",
     value=st.session_state.review_text,
-    height=220
+    height=180
 )
 
 st.session_state.review_text = review_text
@@ -161,10 +142,4 @@ components.html(copy_script, height=70)
 
 st.link_button("🚀 Post on Google", GOOGLE_MAPS_LINK)
 
-# ==============================
-# UNIQUE COUNT ESTIMATE
-# ==============================
-
-approx_unique = len(openings) * (len(experience_lines) + len(emotional_lines))**3 * len(closings)
-
-st.caption("💡 Thousands of unique human-style combinations possible.")
+st.caption("💡 Generates thousands of natural human-style variations.")
