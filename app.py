@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ==============================
-# STYLE
+# SIMPLE MOBILE STYLE
 # ==============================
 
 st.markdown("""
@@ -28,64 +28,64 @@ h1 { text-align: center; }
 .stButton>button {
     width: 100%;
     height: 3em;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 16px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# SENTENCE POOLS
+# HUMAN STYLE SENTENCE POOLS
 # ==============================
 
 openings = [
-    "Amazing experience at SK Photo Studio.",
-    "Had a wonderful time at the studio.",
-    "Truly impressed with the service.",
-    "It was such a great experience.",
-    "Highly satisfied with my visit.",
-    "Fantastic team and atmosphere.",
-    "Very professional setup.",
-    "Absolutely loved my photoshoot."
+    "Absolutely loved my experience here 😍",
+    "Had such a wonderful time at SK Photo Studio 📸",
+    "From start to finish, everything was perfect ✨",
+    "So happy I chose this studio ❤️",
+    "What an amazing photoshoot experience! 🎉",
+    "Truly impressed with the professionalism 🙌",
+    "It was such a smooth and enjoyable session 😊",
+    "I couldn’t be happier with the results 💯"
 ]
 
-middles = [
-    "The team was extremely friendly.",
-    "Everything was handled smoothly.",
-    "The photographers were very creative.",
-    "The lighting setup was excellent.",
-    "Delivery was quick and hassle-free.",
-    "They guided us throughout the shoot.",
-    "Very cooperative and supportive staff.",
-    "The editing quality was top-notch.",
-    "The entire process felt premium.",
-    "Great attention to detail."
+experience_lines = [
+    "The team made me feel completely comfortable.",
+    "They guided us patiently throughout the shoot.",
+    "The attention to detail really stood out.",
+    "Lighting and setup were handled beautifully.",
+    "The entire process felt premium and organized.",
+    "The creativity during the shoot was amazing.",
+    "Everything was managed so smoothly.",
+    "Their friendly approach made it even better.",
+    "The editing quality exceeded expectations.",
+    "Delivery was faster than I expected."
 ]
 
-highlights = [
-    "The photos turned out beautiful.",
-    "The final results exceeded expectations.",
-    "The creativity really stood out.",
-    "Every shot looked amazing.",
-    "Loved the professionalism.",
-    "The studio ambiance was great.",
-    "The quality was outstanding.",
-    "Very happy with the outcome."
+emotional_lines = [
+    "You can truly see the passion in their work 💖",
+    "Every shot captured our special moments perfectly 📷",
+    "They really know how to bring out your best look 🌟",
+    "The final photos made us so emotional 🥹",
+    "Such positive energy throughout the session ✨",
+    "It felt more like fun than a formal shoot 😄",
+    "They paid attention to even the smallest details 👌",
+    "The results honestly surprised me in the best way!"
 ]
 
 closings = [
-    "Highly recommended!",
-    "Would definitely visit again.",
-    "Five stars from me.",
-    "Great overall experience.",
-    "Absolutely worth it.",
-    "Looking forward to next session.",
-    "Totally satisfied.",
-    "Thanks to the amazing team."
+    "Highly recommended! ⭐⭐⭐⭐⭐",
+    "Would definitely visit again! 💫",
+    "Five stars without a doubt ⭐",
+    "Totally worth it! 👍",
+    "Can’t wait for my next shoot here! 😍",
+    "Big thanks to the amazing team! 🙏",
+    "Absolutely satisfied with everything! 💕",
+    "If you’re thinking about booking, just do it! 😉"
 ]
 
 # ==============================
-# REVIEW GENERATOR (2–5 LINES)
+# GENERATOR (2–5 HUMAN LINES)
 # ==============================
 
 def generate_review(previous=None):
@@ -93,21 +93,22 @@ def generate_review(previous=None):
     while True:
         lines = []
 
-        # Always start with opening
+        # Opening
         lines.append(random.choice(openings))
 
-        # Add 1–3 middle/highlight lines randomly
-        extra_lines_count = random.randint(1, 3)
+        # Random number of middle lines (1–3)
+        middle_count = random.randint(1, 3)
 
-        pool = middles + highlights
-        lines.extend(random.sample(pool, extra_lines_count))
+        combined_pool = experience_lines + emotional_lines
+        middle_lines = random.sample(combined_pool, middle_count)
 
-        # Add closing
+        lines.extend(middle_lines)
+
+        # Closing
         lines.append(random.choice(closings))
 
-        review = "\n".join(lines)
+        review = "\n\n".join(lines)
 
-        # Ensure new review is different
         if review != previous:
             return review
 
@@ -119,29 +120,21 @@ if "review_text" not in st.session_state:
     st.session_state.review_text = generate_review()
 
 # ==============================
-# TITLE
+# UI
 # ==============================
 
 st.title("⭐ Review SK Photo Studio")
 st.divider()
-
-# ==============================
-# CHANGE BUTTON
-# ==============================
 
 if st.button("🔄 Change Review"):
     st.session_state.review_text = generate_review(
         st.session_state.review_text
     )
 
-# ==============================
-# EDITOR
-# ==============================
-
 review_text = st.text_area(
     "Your Review:",
     value=st.session_state.review_text,
-    height=150
+    height=220
 )
 
 st.session_state.review_text = review_text
@@ -159,27 +152,19 @@ function copyText() {{
 }}
 </script>
 <button onclick="copyText()" 
-style="width:100%;height:3em;border-radius:8px;font-size:16px;">
+style="width:100%;height:3em;border-radius:10px;font-size:16px;">
 📋 Copy Review
 </button>
 """
 
 components.html(copy_script, height=70)
 
-# ==============================
-# POST BUTTON
-# ==============================
-
 st.link_button("🚀 Post on Google", GOOGLE_MAPS_LINK)
 
 # ==============================
-# UNIQUE COUNT INFO
+# UNIQUE COUNT ESTIMATE
 # ==============================
 
-unique_count = (
-    len(openings)
-    * (len(middles) + len(highlights)) ** 3
-    * len(closings)
-)
+approx_unique = len(openings) * (len(experience_lines) + len(emotional_lines))**3 * len(closings)
 
-st.caption(f"💡 Possible unique combinations: 20,000+")
+st.caption("💡 Thousands of unique human-style combinations possible.")
