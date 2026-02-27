@@ -9,183 +9,120 @@ GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
 STUDIO_NAME = "SK Photo Studio"
 
 st.set_page_config(
-    page_title="Review",
+    page_title="Review SK Photo Studio",
     page_icon="⭐",
     layout="centered"
 )
 
 # ==============================
-# MOBILE BEAUTIFUL UI
+# SIMPLE MOBILE STYLE
 # ==============================
 
 st.markdown("""
 <style>
-
-body {
-    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-}
-
 .block-container {
-    padding-top: 1.5rem;
-    padding-bottom: 2rem;
+    padding-top: 2rem;
     max-width: 420px;
 }
 
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-
-h1, h2, h3 {
+h1 {
     text-align: center;
 }
 
 .stButton>button {
     width: 100%;
-    height: 3.2em;
-    border-radius: 12px;
+    height: 3em;
+    border-radius: 8px;
     font-size: 16px;
-    font-weight: bold;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    color: white;
-    border: none;
 }
 
-.stButton>button:active {
-    transform: scale(0.98);
-}
-
-.stRadio > div {
-    justify-content: center;
-}
-
-.copy-box {
-    background-color: #f4f6f9;
-    padding: 12px;
-    border-radius: 12px;
-    margin-top: 10px;
-}
-
-.footer-note {
+.copy-success {
+    color: green;
     font-size: 14px;
-    text-align: center;
-    margin-top: 10px;
-    color: #666;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# CARD START
+# REVIEW GENERATOR
 # ==============================
 
-st.markdown('<div class="card">', unsafe_allow_html=True)
+def generate_review():
+    openings = [
+        "Amazing experience!",
+        "Loved the service!",
+        "Great studio!",
+        "Very professional team!",
+        "Highly impressed!"
+    ]
 
-st.markdown("## ⭐ Leave a Review")
-st.markdown(f"for **{STUDIO_NAME}** 📸")
+    middle = [
+        "The team was friendly and supportive.",
+        "Everything was handled smoothly.",
+        "The photos turned out beautiful.",
+        "Creative work and quick delivery.",
+        "Very happy with the results."
+    ]
+
+    closings = [
+        "Highly recommended!",
+        "Will definitely visit again.",
+        "Five stars!",
+        "Great overall experience.",
+        "Absolutely worth it!"
+    ]
+
+    return f"{random.choice(openings)} {random.choice(middle)} {random.choice(closings)}"
+
+# ==============================
+# INITIAL AUTO GENERATE
+# ==============================
+
+if "review_text" not in st.session_state:
+    st.session_state.review_text = generate_review()
+
+# ==============================
+# TITLE
+# ==============================
+
+st.title("⭐ Review SK Photo Studio")
 
 st.divider()
 
 # ==============================
-# RATING
+# DIRECT EDITOR
 # ==============================
 
-rating = st.radio(
-    "Your Rating",
-    ["⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐"],
-    horizontal=True
+review_text = st.text_area(
+    "Your Review:",
+    value=st.session_state.review_text,
+    height=120
 )
 
-# ==============================
-# EXPERIENCE
-# ==============================
-
-keywords = st.multiselect(
-    "What did you like?",
-    [
-        "Professionalism",
-        "Creative Posing",
-        "Pro Lighting",
-        "Fast Delivery",
-        "Friendly Staff",
-        "Beautiful Edits",
-        "Great Studio"
-    ]
-)
+# Update session state if edited
+st.session_state.review_text = review_text
 
 # ==============================
-# GENERATOR FUNCTION
+# CHANGE BUTTON
 # ==============================
 
-def generate_review(selected_keywords, rating):
-
-    openings = [
-        "Amazing experience!",
-        "Loved my visit!",
-        "Fantastic service!",
-        "Very happy overall!"
-    ]
-
-    closing_map = {
-        "⭐⭐⭐⭐⭐": "Highly recommended!",
-        "⭐⭐⭐⭐": "Would recommend.",
-        "⭐⭐⭐": "Overall a good experience."
-    }
-
-    opening = random.choice(openings)
-    closing = closing_map[rating]
-
-    if selected_keywords:
-        keyword_text = ", ".join(selected_keywords)
-        middle = f"Loved the {keyword_text}."
-    else:
-        middle = "Everything was handled smoothly."
-
-    return f"{opening} {middle} {closing}"
+if st.button("🔄 Change Review"):
+    st.session_state.review_text = generate_review()
+    st.rerun()
 
 # ==============================
-# GENERATE BUTTON
+# COPY BUTTON
 # ==============================
 
-if st.button("✨ Generate My Review"):
-
-    if not keywords:
-        st.warning("Please select at least one option.")
-    else:
-        st.session_state.review = generate_review(keywords, rating)
+if st.button("📋 Copy Review"):
+    st.write("Copy the text above and paste on Google.")
+    st.markdown('<p class="copy-success">✔ Ready to paste</p>', unsafe_allow_html=True)
 
 # ==============================
-# RESULT SECTION
+# POST BUTTON
 # ==============================
 
-if "review" in st.session_state:
-
-    st.success("🎉 Your Review is Ready!")
-
-    review_text = st.text_area(
-        "Edit if needed:",
-        value=st.session_state.review,
-        height=110
-    )
-
-    st.markdown('<div class="copy-box">📋 Copy this review:</div>', unsafe_allow_html=True)
-    st.code(review_text)
-
-    st.link_button("🚀 Post on Google", GOOGLE_MAPS_LINK)
-
-    st.markdown("""
-    <div class="footer-note">
-    1️⃣ Copy review<br>
-    2️⃣ Tap Post<br>
-    3️⃣ Paste & Submit ⭐
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)
-
+st.link_button("🚀 Post on Google", GOOGLE_MAPS_LINK)
 
 # import streamlit as st
 # import google.generativeai as genai
