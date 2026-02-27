@@ -2,84 +2,72 @@ import streamlit as st
 import google.generativeai as genai
 import random
 
-# 1. YOUR STUDIO DETAILS
-GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review" # <-- Replace with your link
-STUDIO_NAME = "SK Photo Studio" # <-- Replace with your studio name
-
-# 10 Professional Fallback Reviews (if AI is busy)
-FALLBACK_REVIEWS = [
-    f"Amazing experience at {STUDIO_NAME}! The lighting was top-notch. Highly recommend for portraits!",
-    "Had a wonderful photoshoot. They made us feel so comfortable and the edits are beautiful.",
-    "Fast delivery and incredible quality. Best photo studio in the area!",
-    "Great atmosphere and very creative posing help. We love our family photos!",
-    "Very professional service. The final results exceeded our expectations.",
-    "Excellent attention to detail and very friendly staff. Will be back!",
-    "A truly creative team! They captured the mood perfectly. 5 stars!",
-    "Smooth session and stunning results. Very polished editing style.",
-    "They handled our shoot with such patience and care. The photos are gems.",
-    f"Top-tier photography at {STUDIO_NAME}! Efficient and very talented."
-]
+# 1. SETUP
+GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
+STUDIO_NAME = "SK Photo Studio"
 
 # 2. AI SETUP
 try:
     genai.configure(api_key=st.secrets["GEMINI_KEY"])
     model = genai.GenerativeModel('gemini-2.0-flash')
 except:
-    st.error("API Key error. Check Streamlit Secrets.")
+    st.error("API Key error.")
 
-# 3. SMARTY-STYLE UI
-st.set_page_config(page_title="AI Review Standee", page_icon="⭐")
+# 3. PAGE UI
+st.set_page_config(page_title="AI Review Assistant", page_icon="⭐")
 
-# Custom CSS to make it look like a professional app
+# Custom Styling for the "Video Look"
 st.markdown("""
     <style>
-    .main { background-color: #f5f7f9; }
-    .stButton>button { width: 100%; border-radius: 20px; height: 3em; background-color: #007bff; color: white; }
+    .stButton>button { width: 100%; border-radius: 10px; height: 3.5em; background-color: #4CAF50; color: white; font-weight: bold; }
+    .keyword-box { padding: 10px; border-radius: 10px; background-color: #f0f2f6; margin-bottom: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("AI Review Assistant 📸")
-st.write(f"Welcome to **{STUDIO_NAME}**! Tap the tags below to generate your AI review.")
+st.write(f"Generate your 5-star review for **{STUDIO_NAME}**")
 
-# "Top Keywords" feature (Like the video)
-st.subheader("Select what you liked:")
+# Keyword Selection
 keywords = st.multiselect(
-    "Tap to add to review:",
-    ["Creative Lighting", "Posing Help", "Fast Delivery", "Professionalism", "Friendly Staff", "Beautiful Edits", "Comfortable Studio", "Great Price"],
-    default=["Professionalism"]
+    "Select what you liked:",
+    ["Creative Posing", "Pro Lighting", "Fast Delivery", "Friendly Staff", "Beautiful Edits", "Great Studio"],
+    default=["Creative Posing", "Professionalism"]
 )
 
-# Optional Custom Note
-extra_detail = st.text_input("Anything else? (e.g. Photographer name)", placeholder="Optional...")
+# 4. GENERATION
+if st.button("✨ Generate AI Review"):
+    try:
+        prompt = f"Write a natural 5-star Google review for {STUDIO_NAME} mentioning {', '.join(keywords)}. Max 20 words."
+        response = model.generate_content(prompt)
+        st.session_state.final_draft = response.text
+    except:
+        st.session_state.final_draft = "Amazing experience! The photos turned out beautiful and the staff was very professional. Highly recommended!"
 
-# 4. GENERATION LOGIC
-if st.button("✨ Generate My AI Review"):
-    with st.spinner("AI is writing your review..."):
-        try:
-            prompt = f"Write a natural 5-star Google review for {STUDIO_NAME}. Include these keywords: {', '.join(keywords)}. Extra details: {extra_detail}. Keep it warm and under 25 words."
-            response = model.generate_content(prompt)
-            st.session_state.final_draft = response.text
-        except Exception as e:
-            # Fallback if busy (429 Error)
-            st.warning("AI is busy, but we've prepared a great draft for you!")
-            st.session_state.final_draft = random.choice(FALLBACK_REVIEWS)
-
-# 5. POST FLOW
+# 5. THE "AUTO-COPY" POST FLOW
 if 'final_draft' in st.session_state:
-    st.success("Review Generated!")
+    st.success("Review Ready!")
     
-    # Editable Text Box
-    user_review = st.text_area("You can edit this:", value=st.session_state.final_draft, height=120)
+    # Text Area for the user to see
+    final_text = st.text_area("Your Review:", value=st.session_state.final_draft, height=100)
+
+    # THE SECRET "ONE-CLICK" BUTTON
+    # This shows the code for the user and provides the COPY icon
+    st.info("Step 1: Click the copy icon in the box below")
+    st.code(final_text, language=None)
     
-    # Step 1: Copy
-    st.write("### 1. Copy Review")
-    st.code(user_review, language=None)
+    st.write("Step 2: Click below to post. (Just Paste when Google opens!)")
     
-    # Step 2: Post
-    st.write("### 2. Post on Google")
-    st.link_button("🚀 Open Google Maps & Paste", GOOGLE_MAPS_LINK)
-    
-    st.caption("Copy the text, click the button, paste, and post! Thank you! ❤️")
+    # THE BIG POST BUTTON
+    st.link_button("🚀 Copy & Open Google Maps", GOOGLE_MAPS_LINK)
+
+    st.markdown("""
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 10px; border: 1px solid #ffeeba;">
+        <strong>How to post:</strong><br>
+        1. Click the Copy icon above.<br>
+        2. Click the 'Open Google' button.<br>
+        3. <b>Long-press</b> in the review box and select <b>PASTE</b>.
+        </div>
+    """, unsafe_allow_html=True)
 
 
 # import streamlit as st
