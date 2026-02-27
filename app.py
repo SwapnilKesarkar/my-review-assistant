@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+import random
 
 # ==============================
 # 1. CONFIGURATION
@@ -15,19 +15,7 @@ st.set_page_config(
 )
 
 # ==============================
-# 2. GEMINI SETUP
-# ==============================
-
-if "GEMINI_API_KEY" not in st.secrets:
-    st.error("GEMINI_API_KEY not found in Streamlit Cloud Secrets.")
-    st.stop()
-
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
-model = genai.GenerativeModel('gemini-2.0-flash')
-
-# ==============================
-# 3. UI STYLING
+# 2. UI STYLING
 # ==============================
 
 st.markdown("""
@@ -63,15 +51,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================
-# 4. HEADER
+# 3. HEADER
 # ==============================
 
-st.title("⭐ AI Review Assistant")
+st.title("⭐ Review Assistant")
 st.markdown(f"Generate a genuine 5-star review for **{STUDIO_NAME}**")
 st.divider()
 
 # ==============================
-# 5. EXPERIENCE SELECTION
+# 4. EXPERIENCE SELECTION
 # ==============================
 
 st.subheader("Step 1️⃣: What did you like?")
@@ -93,37 +81,65 @@ keywords = st.multiselect(
 )
 
 # ==============================
-# 6. GENERATE REVIEW
+# 5. SMART TEMPLATE ENGINE
+# ==============================
+
+def generate_review(selected_keywords):
+
+    openings = [
+        f"Amazing experience at {STUDIO_NAME}!",
+        f"Had a wonderful time at {STUDIO_NAME}.",
+        f"Highly impressed with {STUDIO_NAME}.",
+        f"Great experience overall at {STUDIO_NAME}!"
+    ]
+
+    experience_lines = [
+        "The team was extremely professional.",
+        "The staff was friendly and supportive.",
+        "Everything was handled smoothly.",
+        "The service exceeded expectations."
+    ]
+
+    keyword_line_templates = [
+        "Loved the {keywords}.",
+        "Really appreciated the {keywords}.",
+        "The {keywords} made it special.",
+        "{keywords} were outstanding."
+    ]
+
+    closings = [
+        "Highly recommended!",
+        "Will definitely visit again.",
+        "Absolutely worth it.",
+        "Five stars from me!"
+    ]
+
+    opening = random.choice(openings)
+    experience = random.choice(experience_lines)
+    keyword_line = random.choice(keyword_line_templates)
+    closing = random.choice(closings)
+
+    keyword_text = ", ".join(selected_keywords)
+
+    keyword_sentence = keyword_line.format(keywords=keyword_text)
+
+    review = f"{opening} {experience} {keyword_sentence} {closing}"
+
+    return review
+
+# ==============================
+# 6. GENERATE BUTTON
 # ==============================
 
 st.subheader("Step 2️⃣: Generate Review")
 
-if st.button("✨ Generate AI Review"):
+if st.button("✨ Generate Review"):
 
     if not keywords:
         st.warning("Please select at least one option.")
         st.stop()
 
-    prompt = f"""
-    Write a short, natural, genuine 5-star Google review 
-    for {STUDIO_NAME}.
-    Mention: {', '.join(keywords)}.
-    Maximum 25 words.
-    Make it sound human and authentic.
-    """
-
-    try:
-        response = model.generate_content(prompt)
-
-        if response and response.text:
-            st.session_state.final_draft = response.text.strip()
-        else:
-            st.error("Empty response from Gemini.")
-            st.stop()
-
-    except Exception as e:
-        st.error(f"Gemini Error: {e}")
-        st.stop()
+    st.session_state.final_draft = generate_review(keywords)
 
 # ==============================
 # 7. EDIT & POST
