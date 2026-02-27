@@ -1,39 +1,38 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Replace with your actual Google Business Review Link
-GOOGLE_MAPS_URL = "https://g.page/r/YOUR_BUSINESS_ID/review"
+# 1. SETUP - Replace the link below with your actual Google Business Link
+GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
 
-# Configure the AI
-genai.configure(api_key=st.secrets["GEMINI_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
+# 2. AI CONFIGURATION
+# We use 'try/except' so the app doesn't crash if the Key is missing
+try:
+    api_key = st.secrets["GEMINI_KEY"]
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except:
+    st.error("API Key is missing! Please add GEMINI_KEY to Streamlit Secrets.")
 
-# UI Design
-st.set_page_config(page_title="Review Helper", page_icon="📝")
-st.title("How was your visit? ✨")
-st.write("Pick a few details and we'll help you draft a review!")
+# 3. USER INTERFACE
+st.title("Review Assistant ⭐")
+st.write("Tell us about your experience and we'll help you write a review!")
 
-# Inputs
-col1, col2 = st.columns(2)
-with col1:
-    rating = st.selectbox("Rating", ["5 Stars ⭐⭐⭐⭐⭐", "4 Stars ⭐⭐⭐⭐"])
-with col2:
-    service = st.multiselect("What was great?", ["Service", "Food", "Price", "Atmosphere", "Speed"])
+# Input fields
+service_type = st.multiselect("What did you like?", ["Food", "Service", "Atmosphere", "Price", "Cleanliness"])
+user_comments = st.text_input("Any specific details? (Optional)")
 
-custom_note = st.text_input("Anything specific to add? (Optional)")
-
-if st.button("Generate My Review"):
-    # The Prompt - This tells the AI how to behave
-    prompt = f"Write a natural, friendly Google review for a business. Rating: {rating}. Highlights: {', '.join(service)}. Specifics: {custom_note}. Keep it under 40 words. Don't use hashtags."
-    
-    response = model.generate_content(prompt)
-    draft = response.text
-    
-    st.subheader("Your Draft:")
-    # Text area allows user to edit
-    final_review = st.text_area("You can edit this text:", value=draft, height=150)
-    
-    st.info("Step 1: Copy the text above. \nStep 2: Click the button below to paste it on Google!")
-    
-    # Button to open Google
-    st.link_button("Go to Google Reviews", GOOGLE_MAPS_URL)
+if st.button("Generate Review Draft"):
+    if not service_type:
+        st.warning("Please select at least one thing you liked!")
+    else:
+        prompt = f"Write a 5-star Google review. Mention: {', '.join(service_type)}. Details: {user_comments}. Natural tone, no hashtags, max 30 words."
+        
+        response = model.generate_content(prompt)
+        review_text = response.text
+        
+        st.subheader("Your AI Draft:")
+        # The text area allows the user to edit the text
+        final_text = st.text_area("Edit this text if you want:", value=review_text, height=150)
+        
+        st.info("Copy the text above, then click the button below to paste it on Google!")
+        st.link_button("Open Google Reviews", GOOGLE_MAPS_LINK)
