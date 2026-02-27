@@ -124,7 +124,7 @@ if st.button("✨ Generate AI Review"):
 
     try:
         response = client.chat.completions.create(
-            model="mistralai/mistral-7b-instruct",
+            model="openchat/openchat-3.5-0106",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=100
         )
