@@ -1,9 +1,10 @@
 import streamlit as st
-import google.generativeai as genai
+from openai import OpenAI
 
 # ==============================
 # 1. CONFIGURATION
 # ==============================
+
 GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
 STUDIO_NAME = "SK Photo Studio"
 
@@ -14,23 +15,31 @@ st.set_page_config(
 )
 
 # ==============================
-# 2. CUSTOM RESPONSIVE UI
+# 2. OPENROUTER SETUP
 # ==============================
+
+try:
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=st.secrets["OPENROUTER_KEY"]
+    )
+except Exception as e:
+    st.error("OpenRouter API key missing. Add OPENROUTER_KEY in secrets.toml")
+    st.stop()
+
+# ==============================
+# 3. CUSTOM RESPONSIVE UI
+# ==============================
+
 st.markdown("""
 <style>
 
-html, body, [class*="css"]  {
-    font-family: 'Poppins', sans-serif;
-}
-
-/* Main container */
 .block-container {
     padding-top: 2rem;
     padding-bottom: 2rem;
     max-width: 600px;
 }
 
-/* Buttons */
 .stButton>button {
     width: 100%;
     border-radius: 12px;
@@ -46,7 +55,6 @@ html, body, [class*="css"]  {
     background-color: #45a049;
 }
 
-/* Mobile improvements */
 @media (max-width: 640px) {
     .block-container {
         padding-left: 1rem;
@@ -54,7 +62,6 @@ html, body, [class*="css"]  {
     }
 }
 
-/* Info box */
 .custom-box {
     background-color: #f8f9fa;
     padding: 15px;
@@ -66,25 +73,17 @@ html, body, [class*="css"]  {
 """, unsafe_allow_html=True)
 
 # ==============================
-# 3. GEMINI AI SETUP
-# ==============================
-try:
-    genai.configure(api_key=st.secrets["GEMINI_KEY"])
-    model = genai.GenerativeModel('gemini-2.0-flash')
-except:
-    st.error("API Key error. Check Streamlit Secrets.")
-
-# ==============================
 # 4. HEADER
 # ==============================
+
 st.title("⭐ AI Review Assistant")
 st.markdown(f"Generate a beautiful 5-star review for **{STUDIO_NAME}**")
-
 st.divider()
 
 # ==============================
 # 5. STEP 1 – SELECT EXPERIENCE
 # ==============================
+
 st.subheader("Step 1️⃣: What did you like?")
 
 options_list = [
@@ -106,33 +105,41 @@ keywords = st.multiselect(
 # ==============================
 # 6. STEP 2 – GENERATE REVIEW
 # ==============================
+
 st.subheader("Step 2️⃣: Generate Review")
 
 if st.button("✨ Generate AI Review"):
+
+    if not keywords:
+        st.warning("Please select at least one option.")
+        st.stop()
+
+    prompt = f"""
+    Write a natural, genuine 5-star Google review 
+    for {STUDIO_NAME}.
+    Mention: {', '.join(keywords)}.
+    Keep it under 25 words.
+    Make it sound human and authentic.
+    """
+
     try:
-        prompt = f"""
-        Write a natural, genuine 5-star Google review 
-        for {STUDIO_NAME}. Mention: {', '.join(keywords)}.
-        Keep it under 25 words.
-        """
+        response = client.chat.completions.create(
+            model="mistralai/mistral-7b-instruct",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=100
+        )
 
-        response = model.generate_content(prompt)
-
-        st.write("DEBUG RESPONSE:", response)  # 👈 see what returns
-
-        if response and response.text:
-            st.session_state.final_draft = response.text.strip()
-        else:
-            st.error("AI returned empty response.")
-            st.session_state.final_draft = ""
+        st.session_state.final_draft = response.choices[0].message.content.strip()
 
     except Exception as e:
-        st.error(f"Error from Gemini: {e}")
+        st.error(f"AI Error: {e}")
+        st.stop()
 
 # ==============================
 # 7. STEP 3 – EDIT & POST
 # ==============================
-if 'final_draft' in st.session_state:
+
+if "final_draft" in st.session_state:
 
     st.divider()
     st.subheader("Step 3️⃣: Edit & Post")
