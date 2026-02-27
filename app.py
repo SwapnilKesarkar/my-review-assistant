@@ -2,28 +2,40 @@ import streamlit as st
 import random
 
 # ==============================
-# 1. CONFIGURATION
+# CONFIG
 # ==============================
 
 GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
 STUDIO_NAME = "SK Photo Studio"
 
 st.set_page_config(
-    page_title="AI Review Assistant",
+    page_title="Review Assistant",
     page_icon="⭐",
     layout="centered"
 )
 
 # ==============================
-# 2. UI STYLING
+# COLORFUL UI STYLING
 # ==============================
 
 st.markdown("""
 <style>
+
+body {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
 .block-container {
     padding-top: 2rem;
     padding-bottom: 2rem;
-    max-width: 600px;
+    max-width: 650px;
+}
+
+.main-card {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0px 10px 30px rgba(0,0,0,0.15);
 }
 
 .stButton>button {
@@ -31,38 +43,62 @@ st.markdown("""
     border-radius: 12px;
     height: 3.2em;
     font-size: 16px;
-    font-weight: 600;
-    background-color: #4CAF50;
+    font-weight: bold;
+    background: linear-gradient(90deg, #ff7eb3, #ff758c);
     color: white;
     border: none;
 }
 
 .stButton>button:hover {
-    background-color: #45a049;
+    transform: scale(1.02);
 }
 
-.custom-box {
-    background-color: #f8f9fa;
+.copy-box {
+    background-color: #f1f3f6;
     padding: 15px;
-    border-radius: 10px;
-    margin-top: 15px;
+    border-radius: 12px;
+    margin-top: 10px;
 }
+
+.footer-box {
+    background-color: #fff4e6;
+    padding: 12px;
+    border-radius: 12px;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# 3. HEADER
+# HEADER
 # ==============================
 
-st.title("⭐ Review Assistant")
-st.markdown(f"Generate a genuine 5-star review for **{STUDIO_NAME}**")
+st.markdown('<div class="main-card">', unsafe_allow_html=True)
+
+st.markdown("## ⭐ Review Generator")
+st.markdown(f"Create a beautiful review for **{STUDIO_NAME}** 📸")
+
 st.divider()
 
 # ==============================
-# 4. EXPERIENCE SELECTION
+# STAR SELECTOR
 # ==============================
 
-st.subheader("Step 1️⃣: What did you like?")
+st.subheader("⭐ Step 1: Select Rating")
+
+rating = st.radio(
+    "",
+    ["⭐⭐⭐⭐⭐ 5 Star", "⭐⭐⭐⭐ 4 Star", "⭐⭐⭐ 3 Star"],
+    horizontal=True
+)
+
+# ==============================
+# EXPERIENCE SELECTION
+# ==============================
+
+st.subheader("✨ Step 2: What did you like?")
 
 options_list = [
     "Professionalism",
@@ -76,104 +112,109 @@ options_list = [
 
 keywords = st.multiselect(
     "Select your experience:",
-    options=options_list,
-    default=["Professionalism", "Creative Posing"]
+    options=options_list
 )
 
 # ==============================
-# 5. SMART TEMPLATE ENGINE
+# TONE SELECTOR
 # ==============================
 
-def generate_review(selected_keywords):
+st.subheader("🎭 Step 3: Select Tone")
 
-    openings = [
-        f"Amazing experience at {STUDIO_NAME}!",
-        f"Had a wonderful time at {STUDIO_NAME}.",
-        f"Highly impressed with {STUDIO_NAME}.",
-        f"Great experience overall at {STUDIO_NAME}!"
-    ]
+tone = st.selectbox(
+    "",
+    ["Professional", "Emotional", "Short & Simple", "Excited"]
+)
 
-    experience_lines = [
-        "The team was extremely professional.",
-        "The staff was friendly and supportive.",
-        "Everything was handled smoothly.",
-        "The service exceeded expectations."
-    ]
+# ==============================
+# SMART GENERATOR
+# ==============================
 
-    keyword_line_templates = [
-        "Loved the {keywords}.",
-        "Really appreciated the {keywords}.",
-        "The {keywords} made it special.",
-        "{keywords} were outstanding."
-    ]
+def generate_review(selected_keywords, rating, tone):
 
-    closings = [
-        "Highly recommended!",
-        "Will definitely visit again.",
-        "Absolutely worth it.",
-        "Five stars from me!"
-    ]
+    openings = {
+        "Professional": [
+            f"Excellent service at {STUDIO_NAME}.",
+            f"A truly professional experience at {STUDIO_NAME}.",
+        ],
+        "Emotional": [
+            f"Absolutely loved my experience at {STUDIO_NAME}!",
+            f"What a memorable time at {STUDIO_NAME}!",
+        ],
+        "Short & Simple": [
+            f"Great experience at {STUDIO_NAME}.",
+            f"Very happy with {STUDIO_NAME}.",
+        ],
+        "Excited": [
+            f"Wow! {STUDIO_NAME} was amazing!",
+            f"So impressed with {STUDIO_NAME}!",
+        ]
+    }
 
-    opening = random.choice(openings)
-    experience = random.choice(experience_lines)
-    keyword_line = random.choice(keyword_line_templates)
-    closing = random.choice(closings)
+    closing_map = {
+        "⭐⭐⭐⭐⭐ 5 Star": "Highly recommended!",
+        "⭐⭐⭐⭐ 4 Star": "Would definitely recommend.",
+        "⭐⭐⭐ 3 Star": "Overall a good experience."
+    }
+
+    opening = random.choice(openings[tone])
+    closing = closing_map[rating]
 
     keyword_text = ", ".join(selected_keywords)
 
-    keyword_sentence = keyword_line.format(keywords=keyword_text)
+    if keyword_text:
+        keyword_sentence = f"Loved the {keyword_text}."
+    else:
+        keyword_sentence = "Everything was handled smoothly."
 
-    review = f"{opening} {experience} {keyword_sentence} {closing}"
-
-    return review
+    return f"{opening} {keyword_sentence} {closing}"
 
 # ==============================
-# 6. GENERATE BUTTON
+# GENERATE BUTTON
 # ==============================
 
-st.subheader("Step 2️⃣: Generate Review")
+st.subheader("🚀 Step 4: Generate")
 
-if st.button("✨ Generate Review"):
+if st.button("✨ Generate My Review"):
 
     if not keywords:
-        st.warning("Please select at least one option.")
-        st.stop()
-
-    st.session_state.final_draft = generate_review(keywords)
+        st.warning("Please select at least one experience.")
+    else:
+        st.session_state.final_draft = generate_review(
+            keywords,
+            rating,
+            tone
+        )
 
 # ==============================
-# 7. EDIT & POST
+# RESULT SECTION
 # ==============================
 
 if "final_draft" in st.session_state:
 
-    st.divider()
-    st.subheader("Step 3️⃣: Edit & Post")
-
-    st.success("Your Review is Ready 🎉")
+    st.success("🎉 Your Review is Ready!")
 
     final_text = st.text_area(
-        "You can edit before posting:",
+        "Edit if needed:",
         value=st.session_state.final_draft,
         height=120
     )
 
-    st.markdown('<div class="custom-box">📋 Copy the review below</div>', unsafe_allow_html=True)
+    st.markdown('<div class="copy-box">📋 Copy this review:</div>', unsafe_allow_html=True)
     st.code(final_text)
 
-    st.markdown("### 🚀 Final Step")
-
-    st.link_button("Open Google Maps & Paste Review", GOOGLE_MAPS_LINK)
+    st.link_button("🚀 Post on Google Maps", GOOGLE_MAPS_LINK)
 
     st.markdown("""
-    <div class="custom-box">
-    <strong>How to Post:</strong><br>
+    <div class="footer-box">
     1️⃣ Copy the review<br>
     2️⃣ Click the button above<br>
     3️⃣ Paste into Google review box<br>
-    4️⃣ Submit ⭐⭐⭐⭐⭐
+    4️⃣ Submit ⭐
     </div>
     """, unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 
 # import streamlit as st
