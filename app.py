@@ -43,6 +43,7 @@ h1 {
 # ==============================
 
 def generate_review():
+
     openings = [
         "Amazing experience!",
         "Loved the service!",
@@ -70,7 +71,7 @@ def generate_review():
     return f"{random.choice(openings)} {random.choice(middle)} {random.choice(closings)}"
 
 # ==============================
-# INITIAL AUTO GENERATE
+# INIT SESSION STATE
 # ==============================
 
 if "review_text" not in st.session_state:
@@ -84,23 +85,31 @@ st.title("⭐ Review SK Photo Studio")
 st.divider()
 
 # ==============================
-# DIRECT EDITOR
+# CHANGE BUTTON (GENERATE NEW UNIQUE REVIEW)
+# ==============================
+
+if st.button("🔄 Change Review"):
+
+    new_review = generate_review()
+
+    # Ensure new review is different
+    while new_review == st.session_state.review_text:
+        new_review = generate_review()
+
+    st.session_state.review_text = new_review
+
+# ==============================
+# DIRECT EDITOR (USES SESSION VALUE DIRECTLY)
 # ==============================
 
 review_text = st.text_area(
     "Your Review:",
     value=st.session_state.review_text,
-    height=120,
-    key="review_area"
+    height=120
 )
 
-# ==============================
-# CHANGE BUTTON
-# ==============================
-
-if st.button("🔄 Change Review"):
-    st.session_state.review_text = generate_review()
-    st.rerun()
+# Update session state if user edits
+st.session_state.review_text = review_text
 
 # ==============================
 # COPY BUTTON (REAL COPY)
