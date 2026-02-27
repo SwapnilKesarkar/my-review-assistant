@@ -9,65 +9,41 @@ GOOGLE_MAPS_LINK = "https://g.page/r/CcgQczb7P9guEAE/review"
 STUDIO_NAME = "SK Photo Studio"
 
 st.set_page_config(
-    page_title="Review Assistant",
+    page_title="Review",
     page_icon="⭐",
     layout="centered"
 )
 
 # ==============================
-# COLORFUL UI STYLING
+# MINIMAL MOBILE STYLE
 # ==============================
 
 st.markdown("""
 <style>
-
-body {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
 .block-container {
-    padding-top: 2rem;
+    padding-top: 1.5rem;
     padding-bottom: 2rem;
-    max-width: 650px;
+    max-width: 420px;
 }
 
-.main-card {
-    background: white;
-    padding: 25px;
-    border-radius: 20px;
-    box-shadow: 0px 10px 30px rgba(0,0,0,0.15);
+h1, h2, h3 {
+    text-align: center;
 }
 
 .stButton>button {
     width: 100%;
-    border-radius: 12px;
     height: 3.2em;
+    border-radius: 10px;
     font-size: 16px;
-    font-weight: bold;
-    background: linear-gradient(90deg, #ff7eb3, #ff758c);
-    color: white;
-    border: none;
 }
 
-.stButton>button:hover {
-    transform: scale(1.02);
+.stRadio > div {
+    justify-content: center;
 }
 
-.copy-box {
-    background-color: #f1f3f6;
-    padding: 15px;
-    border-radius: 12px;
-    margin-top: 10px;
+.stMultiSelect label {
+    font-weight: 500;
 }
-
-.footer-box {
-    background-color: #fff4e6;
-    padding: 12px;
-    border-radius: 12px;
-    margin-top: 15px;
-    font-size: 14px;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -75,146 +51,93 @@ body {
 # HEADER
 # ==============================
 
-st.markdown('<div class="main-card">', unsafe_allow_html=True)
-
-st.markdown("## ⭐ Review Generator")
-st.markdown(f"Create a beautiful review for **{STUDIO_NAME}** 📸")
+st.title("⭐ Leave a Review")
+st.write(f"for **{STUDIO_NAME}**")
 
 st.divider()
 
 # ==============================
-# STAR SELECTOR
+# RATING
 # ==============================
 
-st.subheader("⭐ Step 1: Select Rating")
-
 rating = st.radio(
-    "",
-    ["⭐⭐⭐⭐⭐ 5 Star", "⭐⭐⭐⭐ 4 Star", "⭐⭐⭐ 3 Star"],
+    "Select Rating",
+    ["⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐"],
     horizontal=True
 )
 
 # ==============================
-# EXPERIENCE SELECTION
+# EXPERIENCE
 # ==============================
-
-st.subheader("✨ Step 2: What did you like?")
-
-options_list = [
-    "Professionalism",
-    "Creative Posing",
-    "Pro Lighting",
-    "Fast Delivery",
-    "Friendly Staff",
-    "Beautiful Edits",
-    "Great Studio"
-]
 
 keywords = st.multiselect(
-    "Select your experience:",
-    options=options_list
+    "What did you like?",
+    [
+        "Professionalism",
+        "Creative Posing",
+        "Pro Lighting",
+        "Fast Delivery",
+        "Friendly Staff",
+        "Beautiful Edits",
+        "Great Studio"
+    ]
 )
 
 # ==============================
-# TONE SELECTOR
+# GENERATOR FUNCTION
 # ==============================
 
-st.subheader("🎭 Step 3: Select Tone")
+def generate_review(selected_keywords, rating):
 
-tone = st.selectbox(
-    "",
-    ["Professional", "Emotional", "Short & Simple", "Excited"]
-)
-
-# ==============================
-# SMART GENERATOR
-# ==============================
-
-def generate_review(selected_keywords, rating, tone):
-
-    openings = {
-        "Professional": [
-            f"Excellent service at {STUDIO_NAME}.",
-            f"A truly professional experience at {STUDIO_NAME}.",
-        ],
-        "Emotional": [
-            f"Absolutely loved my experience at {STUDIO_NAME}!",
-            f"What a memorable time at {STUDIO_NAME}!",
-        ],
-        "Short & Simple": [
-            f"Great experience at {STUDIO_NAME}.",
-            f"Very happy with {STUDIO_NAME}.",
-        ],
-        "Excited": [
-            f"Wow! {STUDIO_NAME} was amazing!",
-            f"So impressed with {STUDIO_NAME}!",
-        ]
-    }
+    openings = [
+        "Amazing experience!",
+        "Great service!",
+        "Really happy with my visit.",
+        "Had a wonderful time."
+    ]
 
     closing_map = {
-        "⭐⭐⭐⭐⭐ 5 Star": "Highly recommended!",
-        "⭐⭐⭐⭐ 4 Star": "Would definitely recommend.",
-        "⭐⭐⭐ 3 Star": "Overall a good experience."
+        "⭐⭐⭐⭐⭐": "Highly recommended!",
+        "⭐⭐⭐⭐": "Would recommend.",
+        "⭐⭐⭐": "Overall good experience."
     }
 
-    opening = random.choice(openings[tone])
+    opening = random.choice(openings)
     closing = closing_map[rating]
 
-    keyword_text = ", ".join(selected_keywords)
-
-    if keyword_text:
-        keyword_sentence = f"Loved the {keyword_text}."
+    if selected_keywords:
+        keyword_text = ", ".join(selected_keywords)
+        middle = f"Loved the {keyword_text}."
     else:
-        keyword_sentence = "Everything was handled smoothly."
+        middle = "Everything was handled smoothly."
 
-    return f"{opening} {keyword_sentence} {closing}"
+    return f"{opening} {middle} {closing}"
 
 # ==============================
 # GENERATE BUTTON
 # ==============================
 
-st.subheader("🚀 Step 4: Generate")
+if st.button("Generate Review"):
 
-if st.button("✨ Generate My Review"):
-
-    if not keywords:
-        st.warning("Please select at least one experience.")
-    else:
-        st.session_state.final_draft = generate_review(
-            keywords,
-            rating,
-            tone
-        )
+    st.session_state.review = generate_review(keywords, rating)
 
 # ==============================
-# RESULT SECTION
+# RESULT
 # ==============================
 
-if "final_draft" in st.session_state:
+if "review" in st.session_state:
 
-    st.success("🎉 Your Review is Ready!")
+    st.divider()
 
-    final_text = st.text_area(
+    review_text = st.text_area(
         "Edit if needed:",
-        value=st.session_state.final_draft,
-        height=120
+        value=st.session_state.review,
+        height=110
     )
 
-    st.markdown('<div class="copy-box">📋 Copy this review:</div>', unsafe_allow_html=True)
-    st.code(final_text)
+    st.code(review_text)
 
-    st.link_button("🚀 Post on Google Maps", GOOGLE_MAPS_LINK)
-
-    st.markdown("""
-    <div class="footer-box">
-    1️⃣ Copy the review<br>
-    2️⃣ Click the button above<br>
-    3️⃣ Paste into Google review box<br>
-    4️⃣ Submit ⭐
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)
+    st.link_button("Post on Google", GOOGLE_MAPS_LINK)
 
 
 # import streamlit as st
